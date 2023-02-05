@@ -85,7 +85,11 @@ private:
             {
                 capture.retrieve(frame);
                 cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-                publishFrames();
+
+                cv::resize(frame, frame, cv::Size(853, 480));
+                cv::resize(gray, gray, cv::Size(853, 480));
+
+                publishFrame();
             }
             else
             {

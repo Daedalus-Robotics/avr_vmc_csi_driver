@@ -15,11 +15,11 @@ public:
         captureHeight = (int) get_parameter("capture.height").get_parameter_value().get<int>();
         int captureFramerate = (int) get_parameter("capture.framerate").get_parameter_value().get<int>();
         int captureFlipMethod = (int) get_parameter("capture.flip_method").get_parameter_value().get<int>();
-        std::string tf2Frame = get_parameter("tf2.camera_frame").get_parameter_value().get<std::string>();
+        std::string opticalFrame = get_parameter("optical_frame").get_parameter_value().get<std::string>();
 
         pipeline = gstreamerPipeline(captureWidth, captureHeight, captureFramerate, captureFlipMethod);
 
-        header.frame_id = tf2Frame;
+        header.frame_id = opticalFrame;
         cameraInfo->width = captureWidth;
         cameraInfo->height = captureHeight;
 
@@ -91,7 +91,7 @@ private:
                 "https://gstreamer.freedesktop.org/documentation/videofilter/videoflip.html#GstVideoFlipMethod"
         )); // Should be specified by the launch file
 
-        declare_parameter("tf2.camera_frame", "csi_camera_link", generateParamDescriptor(
+        declare_parameter("optical_frame", "csi_camera_optical_frame", generateParamDescriptor(
                 "The tf2 frame where the camera is located")); // Should be specified by the launch file
 
         declare_parameter("pub.image_color.width", 0, generateParamDescriptor(

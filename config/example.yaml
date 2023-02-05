@@ -5,12 +5,4 @@
       height: 500
       framerate: 15
       flip_method: 0
-#    tf2:
-#      camera_frame: "frame_id"
-#    pub:
-#      image_color:
-#        width: 500
-#        height: 500
-#      image:
-#        width: 500
-#        height: 500
+    optical_frame: "csi_camera_optical_frame"

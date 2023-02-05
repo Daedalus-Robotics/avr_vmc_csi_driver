@@ -7,7 +7,7 @@
 class CSIStreamer : public rclcpp::Node
 {
 public:
-    CSIStreamer() : Node("csi_camera_streamer"), capture(), videoQos(1)
+    CSIStreamer() : Node("csi_camera_streamer"), capture(), videoQos(1), cameraInfo()
     {
         initParameters();
 
@@ -65,7 +65,7 @@ private:
 
     rclcpp::QoS videoQos;
     std_msgs::msg::Header header;
-    std::shared_ptr<sensor_msgs::msg::CameraInfo> cameraInfo = std::make_shared<sensor_msgs::msg::CameraInfo>();
+    std::shared_ptr<sensor_msgs::msg::CameraInfo> cameraInfo;
 
     sensor_msgs::msg::Image::SharedPtr imageColorMsg;
     image_transport::CameraPublisher colorPublisher;

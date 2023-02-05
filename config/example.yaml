@@ -1,0 +1,16 @@
+/csi_camera_streamer:
+  ros__parameters:
+    capture:
+      width: 500
+      height: 500
+      framerate: 15
+      flip_method: 0
+#    tf2:
+#      camera_frame: "frame_id"
+#    pub:
+#      color:
+#        width: 500
+#        height: 500
+#      gray:
+#        width: 500
+#        height: 500

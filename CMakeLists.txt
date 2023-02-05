@@ -38,6 +38,8 @@ if (BUILD_TESTING)
     ament_lint_auto_find_test_dependencies()
 endif ()
 
+install(DIRECTORY config
+        DESTINATION share/${PROJECT_NAME})
 install(TARGETS streamer
         DESTINATION lib/${PROJECT_NAME})
 

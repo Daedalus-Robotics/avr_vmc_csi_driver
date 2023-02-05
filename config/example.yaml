@@ -8,9 +8,9 @@
 #    tf2:
 #      camera_frame: "frame_id"
 #    pub:
-#      color:
+#      image_color:
 #        width: 500
 #        height: 500
-#      gray:
+#      image:
 #        width: 500
 #        height: 500

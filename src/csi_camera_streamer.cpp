@@ -23,10 +23,12 @@ public:
         cameraInfo->width = captureWidth;
         cameraInfo->height = captureHeight;
 
-        colorPublisher = image_transport::create_camera_publisher(this, "~/image_color",
+        imageRawPublisher = image_transport::create_camera_publisher(this, "~/image_raw",
+                                                                     videoQos.get_rmw_qos_profile());
+        imageColorPublisher = image_transport::create_camera_publisher(this, "~/image_color",
+                                                                       videoQos.get_rmw_qos_profile());
+        imagePublisher = image_transport::create_camera_publisher(this, "~/image",
                                                                   videoQos.get_rmw_qos_profile());
-        grayPublisher = image_transport::create_camera_publisher(this, "~/image",
-                                                                 videoQos.get_rmw_qos_profile());
 
         // Ensure that the timer is running slightly faster than the capture
         int durationMs = (1000 / (captureFramerate + 2));
@@ -67,14 +69,19 @@ private:
     std_msgs::msg::Header header;
     std::shared_ptr<sensor_msgs::msg::CameraInfo> cameraInfo;
 
-    sensor_msgs::msg::Image::SharedPtr imageColorMsg;
-    image_transport::CameraPublisher colorPublisher;
+    sensor_msgs::msg::Image::SharedPtr imageRawMsg;
+    image_transport::CameraPublisher imageRawPublisher;
 
-    sensor_msgs::msg::Image::SharedPtr imageGrayMsg;
-    image_transport::CameraPublisher grayPublisher;
+    sensor_msgs::msg::Image::SharedPtr imageColorMsg;
+    image_transport::CameraPublisher imageColorPublisher;
+
+    sensor_msgs::msg::Image::SharedPtr imageMsg;
+    image_transport::CameraPublisher imagePublisher;
+
 
     rclcpp::TimerBase::SharedPtr timer;
 
+    cv::Mat imageRaw;
     cv::Mat imageColor;
     cv::Mat image;
 
@@ -93,24 +100,6 @@ private:
 
         declare_parameter("optical_frame", "csi_camera_optical_frame", generateParamDescriptor(
                 "The tf2 frame where the camera is located")); // Should be specified by the launch file
-
-        declare_parameter("pub.image_color.width", 0, generateParamDescriptor(
-                "Width in pixels of the image to be published on the ~/image_color topic"
-                ", if set to 0 it defaults to the capture width",
-                true)); // Defaults to the capture width
-        declare_parameter("pub.image_color.height", 0, generateParamDescriptor(
-                "Height in pixels of the image to be published on the ~/image_color topic"
-                ", if set to 0 it defaults to the capture height",
-                true)); // Defaults to the capture height
-
-        declare_parameter("pub.image.width", 0, generateParamDescriptor(
-                "Width in pixels of the grayscale image to be published on the ~/image topic"
-                ", if set to 0 it defaults to the capture width",
-                true)); // Defaults to the capture width
-        declare_parameter("pub.image.height", 0, generateParamDescriptor(
-                "Height in pixels of the grayscale image to be published on the ~/image topic"
-                ", if set to 0 it defaults to the capture height",
-                true)); // Defaults to the capture height
     }
 
     int getSizeParameter(const std::string &paramName, int defaultValue)
@@ -129,20 +118,13 @@ private:
         {
             if (capture.grab())
             {
-                cv::Mat imageColorRaw;
-                cv::Mat imageRaw;
+                cv::Mat imageGrayRaw;
 
-                capture.retrieve(imageColorRaw);
-                cv::cvtColor(imageColorRaw, imageRaw, cv::COLOR_BGR2GRAY);
+                capture.retrieve(imageRaw);
+                cv::cvtColor(imageRaw, imageGrayRaw, cv::COLOR_BGR2GRAY);
 
-                int imageColorWidth = getSizeParameter("pub.image_color.width", captureWidth);
-                int imageColorHeight = getSizeParameter("pub.image_color.height", captureHeight);
-
-                int imageWidth = getSizeParameter("pub.image.width", captureWidth);
-                int imageHeight = getSizeParameter("pub.image.height", captureHeight);
-
-                cv::resize(imageColorRaw, imageColor, cv::Size(imageColorWidth, imageColorHeight));
-                cv::resize(imageRaw, image, cv::Size(imageWidth, imageHeight));
+                cv::resize(imageRaw, imageColor, imageRaw.size());
+                cv::resize(imageGrayRaw, image, imageRaw.size());
 
                 publishFrame();
             }
@@ -163,15 +145,19 @@ private:
         header.stamp = now();
         cameraInfo->header = header;
 
+        imageRawMsg = cv_bridge::CvImage(
+                header, sensor_msgs::image_encodings::BGR8, imageRaw
+        ).toImageMsg();
         imageColorMsg = cv_bridge::CvImage(
                 header, sensor_msgs::image_encodings::BGR8, imageColor
         ).toImageMsg();
-        imageGrayMsg = cv_bridge::CvImage(
+        imageMsg = cv_bridge::CvImage(
                 header, sensor_msgs::image_encodings::MONO8, image
         ).toImageMsg();
 
-        colorPublisher.publish(imageColorMsg, cameraInfo);
-        grayPublisher.publish(imageGrayMsg, cameraInfo);
+        imageRawPublisher.publish(imageRawMsg, cameraInfo);
+        imageColorPublisher.publish(imageColorMsg, cameraInfo);
+        imagePublisher.publish(imageMsg, cameraInfo);
     }
 
 

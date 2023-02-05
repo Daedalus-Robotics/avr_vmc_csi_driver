@@ -50,10 +50,36 @@ public:
         capture.open(pipeline, cv::CAP_GSTREAMER);
     }
 
+    void release()
+    {
+        running = false;
+        capture.release();
+    }
+
 private:
+    bool running = true;
+
+    std::string pipeline;
+    cv::VideoCapture capture;
+
+    rclcpp::QoS videoQos;
+    std_msgs::msg::Header header;
+    std::shared_ptr <sensor_msgs::msg::CameraInfo> cameraInfo = std::make_shared <sensor_msgs::msg::CameraInfo>();
+
+    sensor_msgs::msg::Image::SharedPtr imageColorMsg;
+    image_transport::CameraPublisher colorPublisher;
+
+    sensor_msgs::msg::Image::SharedPtr imageGrayMsg;
+    image_transport::CameraPublisher grayPublisher;
+
+    rclcpp::TimerBase::SharedPtr timer;
+
+    cv::Mat frame;
+    cv::Mat gray;
+
     void grabFrames()
     {
-        if (capture.isOpened())
+        if (running && capture.isOpened())
         {
             if (capture.grab())
             {
@@ -88,31 +114,15 @@ private:
         colorPublisher.publish(imageColorMsg, cameraInfo);
         grayPublisher.publish(imageGrayMsg, cameraInfo);
     }
-
-    std::string pipeline;
-    cv::VideoCapture capture;
-
-    rclcpp::QoS videoQos;
-    std_msgs::msg::Header header;
-    std::shared_ptr <sensor_msgs::msg::CameraInfo> cameraInfo = std::make_shared <sensor_msgs::msg::CameraInfo>();
-
-    sensor_msgs::msg::Image::SharedPtr imageColorMsg;
-    image_transport::CameraPublisher colorPublisher;
-
-    sensor_msgs::msg::Image::SharedPtr imageGrayMsg;
-    image_transport::CameraPublisher grayPublisher;
-
-    rclcpp::TimerBase::SharedPtr timer;
-
-    cv::Mat frame;
-    cv::Mat gray;
 };
 
 
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared <CSIStreamer>());
+    std::shared_ptr <CSIStreamer> node = std::make_shared <CSIStreamer>();
+    rclcpp::spin(node);
+    node->release();
     rclcpp::shutdown();
     return 0;
 }

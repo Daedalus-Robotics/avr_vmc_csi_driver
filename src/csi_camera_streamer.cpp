@@ -41,12 +41,12 @@ public:
         grayPublisher = image_transport::create_camera_publisher(this, "~/image_gray",
                                                                  videoQos.get_rmw_qos_profile());
 
+        // Ensure that the timer is running slightly faster than the capture
         int durationMs = (1000 / (15 + 2));
         auto timerRate = std::chrono::milliseconds(durationMs);
-        RCLCPP_WARN(this->get_logger(), "Duration: %d", durationMs);
-        timer = this->create_wall_timer(timerRate, [this] { grabFrames(); });
+        timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
 
-        RCLCPP_INFO(this->get_logger(), "Opening camera...");
+        RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...", 1280, 720, 15);
         capture.open(pipeline, cv::CAP_GSTREAMER);
     }
 
@@ -77,7 +77,7 @@ private:
     cv::Mat frame;
     cv::Mat gray;
 
-    void grabFrames()
+    void grabFrame()
     {
         if (running && capture.isOpened())
         {
@@ -99,7 +99,7 @@ private:
         }
     }
 
-    void publishFrames()
+    void publishFrame()
     {
         header.stamp = now();
         cameraInfo->header = header;

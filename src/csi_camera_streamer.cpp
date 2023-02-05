@@ -10,7 +10,6 @@
 
 
 std::string gstreamerPipeline(int capture_width, int capture_height,
-                              int display_width, int display_height,
                               int framerate, int flip_method)
 {
     return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(capture_width)
@@ -29,7 +28,6 @@ public:
     CSIStreamer() : Node("csi_camera_streamer"), capture(), videoQos(1)
     {
         pipeline = gstreamerPipeline(1280, 720,
-                                     1280, 720,
                                      15, 0);
 
         header.frame_id = "csi_camera_frame";

@@ -25,7 +25,7 @@ public:
 
         colorPublisher = image_transport::create_camera_publisher(this, "~/image_color",
                                                                   videoQos.get_rmw_qos_profile());
-        grayPublisher = image_transport::create_camera_publisher(this, "~/image_gray",
+        grayPublisher = image_transport::create_camera_publisher(this, "~/image",
                                                                  videoQos.get_rmw_qos_profile());
 
         // Ensure that the timer is running slightly faster than the capture
@@ -75,11 +75,8 @@ private:
 
     rclcpp::TimerBase::SharedPtr timer;
 
-    cv::Mat frameRaw;
-    cv::Mat frame;
-
-    cv::Mat grayRaw;
-    cv::Mat gray;
+    cv::Mat imageColor;
+    cv::Mat image;
 
     void initParameters()
     {
@@ -97,33 +94,33 @@ private:
         declare_parameter("tf2.camera_frame", "csi_camera_link", generateParamDescriptor(
                 "The tf2 frame where the camera is located")); // Should be specified by the launch file
 
-        declare_parameter("pub.color.width", 0, generateParamDescriptor(
+        declare_parameter("pub.image_color.width", 0, generateParamDescriptor(
                 "Width in pixels of the image to be published on the ~/image_color topic"
                 ", if set to 0 it defaults to the capture width",
                 true)); // Defaults to the capture width
-        declare_parameter("pub.color.height", 0, generateParamDescriptor(
+        declare_parameter("pub.image_color.height", 0, generateParamDescriptor(
                 "Height in pixels of the image to be published on the ~/image_color topic"
                 ", if set to 0 it defaults to the capture height",
                 true)); // Defaults to the capture height
 
-        declare_parameter("pub.gray.width", 0, generateParamDescriptor(
-                "Width in pixels of the image to be published on the ~/image_gray topic"
+        declare_parameter("pub.image.width", 0, generateParamDescriptor(
+                "Width in pixels of the grayscale image to be published on the ~/image topic"
                 ", if set to 0 it defaults to the capture width",
                 true)); // Defaults to the capture width
-        declare_parameter("pub.gray.height", 0, generateParamDescriptor(
-                "Height in pixels of the image to be published on the ~/image_gray topic"
+        declare_parameter("pub.image.height", 0, generateParamDescriptor(
+                "Height in pixels of the grayscale image to be published on the ~/image topic"
                 ", if set to 0 it defaults to the capture height",
                 true)); // Defaults to the capture height
     }
 
-    int getSizeParameter(const std::string &param_name, int defaultValue)
+    int getSizeParameter(const std::string &paramName, int defaultValue)
     {
-        int param_value = (int) get_parameter(param_name).get_parameter_value().get<int>();
-        if (param_value == 0)
+        int paramValue = (int) get_parameter(paramName).get_parameter_value().get<int>();
+        if (paramValue == 0)
         {
-            param_value = defaultValue;
+            paramValue = defaultValue;
         }
-        return param_value;
+        return paramValue;
     }
 
     void grabFrame()
@@ -132,17 +129,20 @@ private:
         {
             if (capture.grab())
             {
-                capture.retrieve(frameRaw);
-                cv::cvtColor(frameRaw, grayRaw, cv::COLOR_BGR2GRAY);
+                cv::Mat imageColorRaw;
+                cv::Mat imageRaw;
 
-                int color_width = getSizeParameter("pub.color.width", captureWidth);
-                int color_height = getSizeParameter("pub.color.height", captureHeight);
+                capture.retrieve(imageColorRaw);
+                cv::cvtColor(imageColorRaw, imageRaw, cv::COLOR_BGR2GRAY);
 
-                int gray_width = getSizeParameter("pub.gray.width", captureWidth);
-                int gray_height = getSizeParameter("pub.gray.height", captureHeight);
+                int imageColorWidth = getSizeParameter("pub.image_color.width", captureWidth);
+                int imageColorHeight = getSizeParameter("pub.image_color.height", captureHeight);
 
-                cv::resize(frameRaw, frame, cv::Size(color_width, color_height));
-                cv::resize(grayRaw, gray, cv::Size(gray_width, gray_height));
+                int imageWidth = getSizeParameter("pub.image.width", captureWidth);
+                int imageHeight = getSizeParameter("pub.image.height", captureHeight);
+
+                cv::resize(imageColorRaw, imageColor, cv::Size(imageColorWidth, imageColorHeight));
+                cv::resize(imageRaw, image, cv::Size(imageWidth, imageHeight));
 
                 publishFrame();
             }
@@ -164,10 +164,10 @@ private:
         cameraInfo->header = header;
 
         imageColorMsg = cv_bridge::CvImage(
-                header, sensor_msgs::image_encodings::BGR8, frame
+                header, sensor_msgs::image_encodings::BGR8, imageColor
         ).toImageMsg();
         imageGrayMsg = cv_bridge::CvImage(
-                header, sensor_msgs::image_encodings::MONO8, gray
+                header, sensor_msgs::image_encodings::MONO8, image
         ).toImageMsg();
 
         colorPublisher.publish(imageColorMsg, cameraInfo);
@@ -175,14 +175,14 @@ private:
     }
 
 
-    static std::string gstreamerPipeline(int capture_width, int capture_height, int framerate, int flip_method)
+    static std::string gstreamerPipeline(int width, int height, int framerate, int flipMethod)
     {
-        return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(capture_width)
-               + ", height=(int)" + std::to_string(capture_height)
+        return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(width)
+               + ", height=(int)" + std::to_string(height)
                + ", framerate=(fraction)" + std::to_string(framerate)
-               + "/1 ! nvvidconv flip-method=" + std::to_string(flip_method)
-               + " ! video/x-raw, width=(int)" + std::to_string(capture_width)
-               + ", height=(int)" + std::to_string(capture_height)
+               + "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod)
+               + " ! video/x-raw, width=(int)" + std::to_string(width)
+               + ", height=(int)" + std::to_string(height)
                + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
     }
 };

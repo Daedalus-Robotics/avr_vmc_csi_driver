@@ -123,6 +123,7 @@ private:
                 capture.retrieve(imageRaw);
                 cv::cvtColor(imageRaw, imageGrayRaw, cv::COLOR_BGR2GRAY);
 
+                // ToDo: Remove this and actually undistort the images
                 cv::resize(imageRaw, imageColor, imageRaw.size());
                 cv::resize(imageGrayRaw, image, imageRaw.size());
 

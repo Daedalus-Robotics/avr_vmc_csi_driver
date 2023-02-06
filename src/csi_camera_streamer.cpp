@@ -99,7 +99,7 @@ private:
         )); // Should be specified by the launch file
 
         declare_parameter("optical_frame", "csi_camera_optical_frame", generateParamDescriptor(
-                "The tf2 frame where the camera is located")); // Should be specified by the launch file
+                "The tf2 frame id of the camera optical frame")); // Should be specified by the launch file
     }
 
     void grabFrame()

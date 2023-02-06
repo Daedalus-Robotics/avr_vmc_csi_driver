@@ -7,7 +7,7 @@ A simple ROS2 node that publishes frames from a CSI camera on a Jetson Nano
 Go to your workspace `src` drirectiory
 
 ```bash
-git clone https://github.com/Daedalus-Robotics/avr-vmc-2023-csi-camera.git
+git clone https://github.com/Daedalus-Robotics/avr-vmc-2023-csi-driver.git csi_driver
 git clone https://github.com/ros-perception/image_common.git --branch 3.0.0 --single-branch
 cd ..
 colcon build --symlink-install

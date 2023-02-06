@@ -102,16 +102,6 @@ private:
                 "The tf2 frame where the camera is located")); // Should be specified by the launch file
     }
 
-    int getSizeParameter(const std::string &paramName, int defaultValue)
-    {
-        int paramValue = (int) get_parameter(paramName).get_parameter_value().get<int>();
-        if (paramValue == 0)
-        {
-            paramValue = defaultValue;
-        }
-        return paramValue;
-    }
-
     void grabFrame()
     {
         if (isRunning && capture.isOpened())

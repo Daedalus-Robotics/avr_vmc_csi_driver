@@ -7,7 +7,7 @@
 class CSIStreamer : public rclcpp::Node
 {
 public:
-    CSIStreamer() : Node("csi_camera_streamer"), capture(), videoQos(1), cameraInfo()
+    CSIStreamer() : Node("csi_driver"), capture(), videoQos(1), cameraInfo()
     {
         initParameters();
 

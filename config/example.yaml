@@ -1,4 +1,4 @@
-/csi_camera_streamer:
+/csi_driver:
   ros__parameters:
     capture:
       width: 500

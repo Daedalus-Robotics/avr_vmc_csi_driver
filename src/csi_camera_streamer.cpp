@@ -47,11 +47,11 @@ public:
     }
 
 private:
-    static auto generateParamDescriptor(std::string description, bool isDynamic = false)
+    static auto generateParamDescriptor(std::string description)
     {
         auto paramDescriptor = rcl_interfaces::msg::ParameterDescriptor{};
         paramDescriptor.description = std::move(description);
-        paramDescriptor.read_only = !isDynamic;
+        paramDescriptor.read_only = true;
 
         return paramDescriptor;
     }

@@ -7,7 +7,7 @@
 class CSIStreamer : public rclcpp::Node
 {
 public:
-    CSIStreamer() : Node("csi_driver"), capture(), videoQos(1), cameraInfo()
+    CSIDriver() : Node("csi_driver"), capture(), videoQos(1)
     {
         initParameters();
 
@@ -168,7 +168,7 @@ private:
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    std::shared_ptr<CSIStreamer> node = std::make_shared<CSIStreamer>();
+    std::shared_ptr<CSIDriver> node = std::make_shared<CSIDriver>();
     rclcpp::spin(node);
     node->release();
     rclcpp::shutdown();

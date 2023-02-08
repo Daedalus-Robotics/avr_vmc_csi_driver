@@ -31,6 +31,7 @@ public:
                                                                   videoQos.get_rmw_qos_profile());
 
         // Ensure that the timer is running slightly faster than the capture
+        assert(captureFramerate > 0);
         int durationMs = (1000 / (captureFramerate + 2));
         auto timerRate = std::chrono::milliseconds(durationMs);
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });

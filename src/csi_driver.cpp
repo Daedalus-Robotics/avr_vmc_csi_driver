@@ -4,7 +4,7 @@
 #include "opencv2/opencv.hpp"
 
 
-class CSIStreamer : public rclcpp::Node
+class CSIDriver : public rclcpp::Node
 {
 public:
     CSIDriver() : Node("csi_driver"), capture(), videoQos(1)

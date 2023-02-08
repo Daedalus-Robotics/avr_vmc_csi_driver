@@ -24,8 +24,8 @@ find_package(OpenCV REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_executable(driver src/csi_driver.cpp)
-ament_target_dependencies(driver rclcpp image_transport cv_bridge OpenCV)
+add_executable(csi_driver src/csi_driver.cpp)
+ament_target_dependencies(csi_driver rclcpp image_transport cv_bridge OpenCV)
 
 if (BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
@@ -40,7 +40,7 @@ endif ()
 
 install(DIRECTORY config
         DESTINATION share/${PROJECT_NAME})
-install(TARGETS driver
+install(TARGETS csi_driver
         DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

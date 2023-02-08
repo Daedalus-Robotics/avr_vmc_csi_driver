@@ -19,6 +19,8 @@ public:
 
         pipeline = gstreamerPipeline(captureWidth, captureHeight, captureFramerate, captureFlipMethod);
 
+        cameraInfo = std::make_shared<sensor_msgs::msg::CameraInfo>();
+
         header.frame_id = opticalFrame;
         cameraInfo->width = captureWidth;
         cameraInfo->height = captureHeight;

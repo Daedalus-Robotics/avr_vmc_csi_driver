@@ -17,15 +17,45 @@ endif ()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+
+find_package(class_loader REQUIRED)
+
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-add_executable(csi_driver src/csi_driver.cpp)
-ament_target_dependencies(csi_driver rclcpp image_transport cv_bridge OpenCV)
+include_directories(include)
+ament_export_include_directories(include)
+
+add_executable(csi_driver_node src/csi_driver.cpp include/csi_driver/csi_driver.hpp)
+ament_target_dependencies(csi_driver_node
+        rclcpp
+        rclcpp_components
+        image_transport
+        cv_bridge
+        OpenCV
+        std_msgs
+        sensor_msgs)
+
+add_library(csi_driver_component
+        SHARED src/csi_driver.cpp)
+target_compile_definitions(csi_driver_component
+        PRIVATE "COMPOSITION_BUILDING_DLL")
+ament_target_dependencies(csi_driver_component
+        rclcpp
+        rclcpp_components
+        image_transport
+        cv_bridge
+        OpenCV
+        std_msgs
+        sensor_msgs)
+rclcpp_components_register_nodes(csi_driver_component
+        "csi_driver::CSIDriverNode")
 
 if (BUILD_TESTING)
     find_package(ament_lint_auto REQUIRED)
@@ -38,9 +68,15 @@ if (BUILD_TESTING)
     ament_lint_auto_find_test_dependencies()
 endif ()
 
-install(DIRECTORY config
+install(DIRECTORY include
+        DESTINATION include/${PROJECT_NAME})
+install(DIRECTORY launch
         DESTINATION share/${PROJECT_NAME})
-install(TARGETS csi_driver
+install(TARGETS csi_driver_node
         DESTINATION lib/${PROJECT_NAME})
+install(TARGETS csi_driver_component
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
 
 ament_package()

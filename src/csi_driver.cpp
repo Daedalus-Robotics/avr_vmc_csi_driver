@@ -16,7 +16,6 @@ namespace csi_driver
         captureWidth = (int) get_parameter("capture.width").get_parameter_value().get<int>();
         captureHeight = (int) get_parameter("capture.height").get_parameter_value().get<int>();
         captureFramerate = (int) get_parameter("capture.framerate").get_parameter_value().get<int>();
-        RCLCPP_INFO(this->get_logger(), "Hi: fps:%d", captureFramerate);
         int captureFlipMethod = (int) get_parameter("capture.flip_method").get_parameter_value().get<int>();
         std::string opticalFrame = get_parameter("optical_frame").get_parameter_value().get<std::string>();
 

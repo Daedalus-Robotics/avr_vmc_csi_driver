@@ -1,8 +1,0 @@
-/csi_driver:
-  ros__parameters:
-    capture:
-      width: 500
-      height: 500
-      framerate: 15
-      flip_method: 0
-    optical_frame: "csi_camera_optical_frame"

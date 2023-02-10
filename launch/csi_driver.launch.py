@@ -17,7 +17,7 @@ def generate_launch_description() -> LaunchDescription:
     flip_method = LaunchConfiguration('camera_flip_method')
     optical_frame = LaunchConfiguration('camera_optical_frame')
 
-    launch_entities.append(DeclareLaunchArgument('namespace', default_value=''))
+    launch_entities.append(DeclareLaunchArgument('namespace', default_value='csi_camera'))
     launch_entities.append(DeclareLaunchArgument('camera_width', default_value='1280'))
     launch_entities.append(DeclareLaunchArgument('camera_height', default_value='720'))
     launch_entities.append(DeclareLaunchArgument('camera_framerate', default_value='30'))

@@ -4,7 +4,7 @@
     <name>csi_driver</name>
     <version>0.0.1</version>
     <description>Publishes frames from an Nvidia Jetson Nano CSI camera</description>
-    <maintainer email="hunterbaker@me.com">literallyanything</maintainer>
+    <maintainer email="hunterbaker@me.com">Hunter Baker</maintainer>
     <license>GPL-3.0-only</license>
 
     <buildtool_depend>ament_cmake</buildtool_depend>

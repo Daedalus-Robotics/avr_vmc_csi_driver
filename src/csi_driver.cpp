@@ -1,19 +1,22 @@
-#include "rclcpp/rclcpp.hpp"
-#include "image_transport/image_transport.hpp"
-#include "cv_bridge/cv_bridge.h"
-#include "opencv2/opencv.hpp"
+#include "csi_driver/csi_driver.hpp"
 
+#include <rclcpp_components/register_node_macro.hpp>
+#include <image_transport/image_transport.hpp>
+#include <cv_bridge/cv_bridge.h>
 
-class CSIDriver : public rclcpp::Node
+namespace csi_driver
 {
-public:
-    CSIDriver() : Node("csi_driver"), capture(), videoQos(1)
+    CSIDriverNode::CSIDriverNode(const rclcpp::NodeOptions &options) :
+            Node("csi_driver", options),
+            capture(),
+            videoQos(1)
     {
         initParameters();
 
         captureWidth = (int) get_parameter("capture.width").get_parameter_value().get<int>();
         captureHeight = (int) get_parameter("capture.height").get_parameter_value().get<int>();
-        int captureFramerate = (int) get_parameter("capture.framerate").get_parameter_value().get<int>();
+        captureFramerate = (int) get_parameter("capture.framerate").get_parameter_value().get<int>();
+        RCLCPP_INFO(this->get_logger(), "Hi: fps:%d", captureFramerate);
         int captureFlipMethod = (int) get_parameter("capture.flip_method").get_parameter_value().get<int>();
         std::string opticalFrame = get_parameter("optical_frame").get_parameter_value().get<std::string>();
 
@@ -25,32 +28,23 @@ public:
         cameraInfo->width = captureWidth;
         cameraInfo->height = captureHeight;
 
-        imageRawPublisher = image_transport::create_camera_publisher(this, "~/image_raw",
+        imageRawPublisher = image_transport::create_camera_publisher(this, "image_raw",
                                                                      videoQos.get_rmw_qos_profile());
-        imageColorPublisher = image_transport::create_camera_publisher(this, "~/image_color",
-                                                                       videoQos.get_rmw_qos_profile());
-        imagePublisher = image_transport::create_camera_publisher(this, "~/image",
-                                                                  videoQos.get_rmw_qos_profile());
 
         // Ensure that the timer is running slightly faster than the capture
         assert(captureFramerate > 0);
-        int durationMs = (1000 / (captureFramerate + 2));
+        int durationMs = (1000 / (captureFramerate + 1));
         auto timerRate = std::chrono::milliseconds(durationMs);
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
-
-        RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...",
-                    captureWidth, captureHeight, captureFramerate);
-        capture.open(pipeline, cv::CAP_GSTREAMER);
     }
 
-    void release()
+    void CSIDriverNode::release()
     {
         isRunning = false;
         capture.release();
     }
 
-private:
-    static auto generateParamDescriptor(std::string description)
+    auto CSIDriverNode::generateParamDescriptor(std::string description)
     {
         auto paramDescriptor = rcl_interfaces::msg::ParameterDescriptor{};
         paramDescriptor.description = std::move(description);
@@ -59,36 +53,7 @@ private:
         return paramDescriptor;
     }
 
-
-    bool isRunning = true;
-
-    int captureWidth;
-    int captureHeight;
-
-    std::string pipeline;
-    cv::VideoCapture capture;
-
-    rclcpp::QoS videoQos;
-    std_msgs::msg::Header header;
-    std::shared_ptr<sensor_msgs::msg::CameraInfo> cameraInfo;
-
-    sensor_msgs::msg::Image::SharedPtr imageRawMsg;
-    image_transport::CameraPublisher imageRawPublisher;
-
-    sensor_msgs::msg::Image::SharedPtr imageColorMsg;
-    image_transport::CameraPublisher imageColorPublisher;
-
-    sensor_msgs::msg::Image::SharedPtr imageMsg;
-    image_transport::CameraPublisher imagePublisher;
-
-
-    rclcpp::TimerBase::SharedPtr timer;
-
-    cv::Mat imageRaw;
-    cv::Mat imageColor;
-    cv::Mat image;
-
-    void initParameters()
+    void CSIDriverNode::initParameters()
     {
         declare_parameter("capture.width", 0, generateParamDescriptor(
                 "Width in pixels of the camera")); // Should be specified by the launch file
@@ -105,21 +70,13 @@ private:
                 "The tf2 frame id of the camera optical frame")); // Should be specified by the launch file
     }
 
-    void grabFrame()
+    void CSIDriverNode::grabFrame()
     {
         if (isRunning && capture.isOpened())
         {
             if (capture.grab())
             {
-                cv::Mat imageGrayRaw;
-
                 capture.retrieve(imageRaw);
-                cv::cvtColor(imageRaw, imageGrayRaw, cv::COLOR_BGR2GRAY);
-
-                // ToDo: Remove this and actually undistort the images
-                cv::resize(imageRaw, imageColor, imageRaw.size());
-                cv::resize(imageGrayRaw, image, imageRaw.size());
-
                 publishFrame();
             }
             else
@@ -129,12 +86,14 @@ private:
         }
         else
         {
-            RCLCPP_WARN(this->get_logger(), "Could not open camera! Retrying...");
+            RCLCPP_WARN_SKIPFIRST(this->get_logger(), "Could not open camera! Retrying...");
+            RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...",
+                        captureWidth, captureHeight, captureFramerate);
             capture.open(pipeline, cv::CAP_GSTREAMER);
         }
     }
 
-    void publishFrame()
+    void CSIDriverNode::publishFrame()
     {
         header.stamp = now();
         cameraInfo->header = header;
@@ -142,20 +101,12 @@ private:
         imageRawMsg = cv_bridge::CvImage(
                 header, sensor_msgs::image_encodings::BGR8, imageRaw
         ).toImageMsg();
-        imageColorMsg = cv_bridge::CvImage(
-                header, sensor_msgs::image_encodings::BGR8, imageColor
-        ).toImageMsg();
-        imageMsg = cv_bridge::CvImage(
-                header, sensor_msgs::image_encodings::MONO8, image
-        ).toImageMsg();
 
         imageRawPublisher.publish(imageRawMsg, cameraInfo);
-        imageColorPublisher.publish(imageColorMsg, cameraInfo);
-        imagePublisher.publish(imageMsg, cameraInfo);
     }
 
 
-    static std::string gstreamerPipeline(int width, int height, int framerate, int flipMethod)
+    std::string CSIDriverNode::gstreamerPipeline(int width, int height, int framerate, int flipMethod)
     {
         return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(width)
                + ", height=(int)" + std::to_string(height)
@@ -165,15 +116,22 @@ private:
                + ", height=(int)" + std::to_string(height)
                + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
     }
-};
+}
 
 
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    std::shared_ptr<CSIDriver> node = std::make_shared<CSIDriver>();
+
+    const rclcpp::NodeOptions options;
+    std::shared_ptr<csi_driver::CSIDriverNode> node = std::make_shared<csi_driver::CSIDriverNode>(options);
+
     rclcpp::spin(node);
+
     node->release();
+
     rclcpp::shutdown();
     return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(csi_driver::CSIDriverNode)

@@ -17,5 +17,5 @@ colcon build --symlink-install
 
 ```bash
 . install/local_setup.bash
-ros2 run csi_camera streamer --ros-args --params-file src/csi_camera/config/example.yaml
+ros2 launch csi_driver csi_driver.launch.py
 ```

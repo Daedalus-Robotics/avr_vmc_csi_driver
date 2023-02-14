@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <image_transport/image_transport.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <camera_info_manager/camera_info_manager.hpp>
 
 namespace csi_driver
 {
@@ -16,20 +17,20 @@ namespace csi_driver
         void release();
 
     private:
-        static auto generateParamDescriptor(std::string description);
-
         bool isRunning = true;
 
-        int captureWidth;
-        int captureHeight;
+//        int captureWidth;
+//        int captureHeight;
         int captureFramerate;
+        int captureFlipMethod;
+//        std::string opticalFrame;
 
         std::string pipeline;
         cv::VideoCapture capture;
 
         rclcpp::QoS videoQos;
         std_msgs::msg::Header header;
-        std::shared_ptr<sensor_msgs::msg::CameraInfo> cameraInfo;
+        std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;
 
         sensor_msgs::msg::Image::SharedPtr imageRawMsg;
         image_transport::CameraPublisher imageRawPublisher;
@@ -38,6 +39,8 @@ namespace csi_driver
 
         cv::Mat imageRaw;
 
+        void populateCameraInfo();
+
         void initParameters();
 
         void grabFrame();
@@ -45,7 +48,11 @@ namespace csi_driver
         void publishFrame();
 
 
-        static std::string gstreamerPipeline(int width, int height, int framerate, int flipMethod);
+        static rcl_interfaces::msg::ParameterDescriptor_<std::allocator<void>> generateParamDescriptor(
+                std::string description
+        );
+
+        static std::string gstreamerPipeline(unsigned int width, unsigned int height, int framerate, int flipMethod);
     };
 }
 

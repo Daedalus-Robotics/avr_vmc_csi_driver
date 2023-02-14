@@ -28,6 +28,7 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(camera_info_manager REQUIRED)
 
 include_directories(include)
 ament_export_include_directories(include)
@@ -40,7 +41,8 @@ ament_target_dependencies(csi_driver_node
         cv_bridge
         OpenCV
         std_msgs
-        sensor_msgs)
+        sensor_msgs
+        camera_info_manager)
 
 add_library(csi_driver_component
         SHARED src/csi_driver.cpp)

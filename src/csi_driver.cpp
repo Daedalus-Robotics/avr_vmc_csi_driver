@@ -12,20 +12,18 @@ namespace csi_driver
             videoQos(1)
     {
         initParameters();
+        populateCameraInfo();
 
-        captureWidth = (int) get_parameter("capture.width").get_parameter_value().get<int>();
-        captureHeight = (int) get_parameter("capture.height").get_parameter_value().get<int>();
-        captureFramerate = (int) get_parameter("capture.framerate").get_parameter_value().get<int>();
-        int captureFlipMethod = (int) get_parameter("capture.flip_method").get_parameter_value().get<int>();
-        std::string opticalFrame = get_parameter("optical_frame").get_parameter_value().get<std::string>();
+        captureFramerate = (int) get_parameter("framerate").get_parameter_value().get<int>();
+        captureFlipMethod = (int) get_parameter("flip_method").get_parameter_value().get<int>();
 
-        pipeline = gstreamerPipeline(captureWidth, captureHeight, captureFramerate, captureFlipMethod);
-
-        cameraInfo = std::make_shared<sensor_msgs::msg::CameraInfo>();
-
-        header.frame_id = opticalFrame;
-        cameraInfo->width = captureWidth;
-        cameraInfo->height = captureHeight;
+        pipeline = gstreamerPipeline(
+                cameraInfoManager->getCameraInfo().width,
+                cameraInfoManager->getCameraInfo().height,
+                captureFramerate,
+                captureFlipMethod
+        );
+        RCLCPP_DEBUG(this->get_logger(), "Gstreamer pipeline: %s", pipeline.c_str());
 
         imageRawPublisher = image_transport::create_camera_publisher(this, "image_raw",
                                                                      videoQos.get_rmw_qos_profile());
@@ -34,6 +32,7 @@ namespace csi_driver
         assert(captureFramerate > 0);
         int durationMs = (1000 / (captureFramerate + 1));
         auto timerRate = std::chrono::milliseconds(durationMs);
+        RCLCPP_DEBUG(this->get_logger(), "Timer period: %d", durationMs);
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
     }
 
@@ -43,24 +42,47 @@ namespace csi_driver
         capture.release();
     }
 
-    auto CSIDriverNode::generateParamDescriptor(std::string description)
-    {
-        auto paramDescriptor = rcl_interfaces::msg::ParameterDescriptor{};
-        paramDescriptor.description = std::move(description);
-        paramDescriptor.read_only = true;
 
-        return paramDescriptor;
+    void CSIDriverNode::populateCameraInfo()
+    {
+        std::string cameraInfoPath = get_parameter("info_file").get_parameter_value().get<std::string>();
+        cameraInfoPath = (!cameraInfoPath.empty() ? "file://" : "") + cameraInfoPath;
+
+        sensor_msgs::msg::CameraInfo cameraInfo;
+
+        cameraInfoManager = std::make_shared<camera_info_manager::CameraInfoManager>(
+                this,
+                get_namespace(),
+                cameraInfoPath
+        );
+
+        cameraInfo = cameraInfoManager->getCameraInfo();
+
+        if (cameraInfoPath.empty())
+        {
+            cameraInfo.width = (int) get_parameter("width").get_parameter_value().get<int>();
+            cameraInfo.height = (int) get_parameter("height").get_parameter_value().get<int>();
+        }
+        header.frame_id = get_parameter("optical_frame").get_parameter_value().get<std::string>();
+        cameraInfo.header = header;
+
+        cameraInfoManager->setCameraInfo(cameraInfo);
     }
 
     void CSIDriverNode::initParameters()
     {
-        declare_parameter("capture.width", 0, generateParamDescriptor(
+        declare_parameter("info_file", "", generateParamDescriptor(
                 "Width in pixels of the camera")); // Should be specified by the launch file
-        declare_parameter("capture.height", 0, generateParamDescriptor(
-                "Height in pixels of the camera")); // Should be specified by the launch file
-        declare_parameter("capture.framerate", 0, generateParamDescriptor(
+
+        declare_parameter("width", 0, generateParamDescriptor(
+                "Width in pixels of the camera. "
+                "Not used if there is a camera info file provided"));
+        declare_parameter("height", 0, generateParamDescriptor(
+                "Height in pixels of the camera. "
+                "Not used if there is a camera info file provided"));
+        declare_parameter("framerate", 0, generateParamDescriptor(
                 "Framerate of the camera")); // Should be specified by the launch file
-        declare_parameter("capture.flip_method", 0, generateParamDescriptor(
+        declare_parameter("flip_method", 0, generateParamDescriptor(
                 "Flip method: "
                 "https://gstreamer.freedesktop.org/documentation/videofilter/videoflip.html#GstVideoFlipMethod"
         )); // Should be specified by the launch file
@@ -87,7 +109,11 @@ namespace csi_driver
         {
             RCLCPP_WARN_SKIPFIRST(this->get_logger(), "Could not open camera! Retrying...");
             RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...",
-                        captureWidth, captureHeight, captureFramerate);
+                        cameraInfoManager->getCameraInfo().width,
+                        cameraInfoManager->getCameraInfo().height,
+                        captureFramerate
+            );
+
             capture.open(pipeline, cv::CAP_GSTREAMER);
         }
     }
@@ -95,17 +121,33 @@ namespace csi_driver
     void CSIDriverNode::publishFrame()
     {
         header.stamp = now();
-        cameraInfo->header = header;
+        sensor_msgs::msg::CameraInfo cameraInfo = cameraInfoManager->getCameraInfo();
+        cameraInfo.header = header;
 
         imageRawMsg = cv_bridge::CvImage(
                 header, sensor_msgs::image_encodings::BGR8, imageRaw
         ).toImageMsg();
 
-        imageRawPublisher.publish(imageRawMsg, cameraInfo);
+        imageRawPublisher.publish(
+                imageRawMsg,
+                std::make_shared<sensor_msgs::msg::CameraInfo>(cameraInfo)
+        );
     }
 
 
-    std::string CSIDriverNode::gstreamerPipeline(int width, int height, int framerate, int flipMethod)
+    rcl_interfaces::msg::ParameterDescriptor_<std::allocator<void>> CSIDriverNode::generateParamDescriptor(
+            std::string description
+    )
+    {
+        rcl_interfaces::msg::ParameterDescriptor_<std::allocator<void>> paramDescriptor =
+                rcl_interfaces::msg::ParameterDescriptor{};
+        paramDescriptor.description = std::move(description);
+        paramDescriptor.read_only = true;
+
+        return paramDescriptor;
+    }
+
+    std::string CSIDriverNode::gstreamerPipeline(unsigned int width, unsigned int height, int framerate, int flipMethod)
     {
         return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(width)
                + ", height=(int)" + std::to_string(height)

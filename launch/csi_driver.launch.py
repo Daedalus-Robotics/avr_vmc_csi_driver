@@ -5,24 +5,27 @@ from launch import LaunchDescription, LaunchDescriptionEntity
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
+FLIP_METHOD_DOCS_URL = "https://gstreamer.freedesktop.org/documentation/videofilter/videoflip.html#GstVideoFlipMethod"
+
 
 def generate_launch_description() -> LaunchDescription:
     launch_entities: list[LaunchDescriptionEntity] = []
     composable_nodes: list[ComposableNode] = []
 
     namespace = LaunchConfiguration('namespace')
-    width = LaunchConfiguration('camera_width')
-    height = LaunchConfiguration('camera_height')
-    framerate = LaunchConfiguration('camera_framerate')
-    flip_method = LaunchConfiguration('camera_flip_method')
-    optical_frame = LaunchConfiguration('camera_optical_frame')
+    info_file = LaunchConfiguration('info_file')
+    framerate = LaunchConfiguration('framerate')
+    flip_method = LaunchConfiguration('flip_method')
+    optical_frame = LaunchConfiguration('optical_frame')
 
     launch_entities.append(DeclareLaunchArgument('namespace', default_value='csi_camera'))
-    launch_entities.append(DeclareLaunchArgument('camera_width', default_value='1280'))
-    launch_entities.append(DeclareLaunchArgument('camera_height', default_value='720'))
-    launch_entities.append(DeclareLaunchArgument('camera_framerate', default_value='30'))
-    launch_entities.append(DeclareLaunchArgument('camera_flip_method', default_value='0'))
-    launch_entities.append(DeclareLaunchArgument('camera_optical_frame', default_value='csi_camera_optical_frame'))
+    launch_entities.append(DeclareLaunchArgument('info_file', default_value='',
+                                                 description='Path to the camera info file'))
+    launch_entities.append(DeclareLaunchArgument('framerate', default_value='0'))
+    launch_entities.append(DeclareLaunchArgument('flip_method', default_value='0',
+                                                 description="Flip Method: " + FLIP_METHOD_DOCS_URL))
+    launch_entities.append(DeclareLaunchArgument('optical_frame', default_value='csi_camera_optical_frame',
+                                                 description='The tf2 optical frame id'))
 
     composable_nodes.append(
             ComposableNode(
@@ -76,11 +79,10 @@ def generate_launch_description() -> LaunchDescription:
                     ],
                     parameters=[
                         {
-                            'capture.width': width,
-                            'capture.height': height,
-                            'capture.framerate': framerate,
-                            'capture.flip_method': flip_method,
-                            "optical_frame": optical_frame
+                            'info_file': info_file,
+                            'framerate': framerate,
+                            'flip_method': flip_method,
+                            'optical_frame': optical_frame
                         }
                     ]
             )

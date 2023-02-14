@@ -48,7 +48,7 @@ namespace csi_driver
     void CSIDriverNode::populateCameraInfo()
     {
         std::string cameraInfoPath = get_parameter("info_file").get_parameter_value().get<std::string>();
-        cameraInfoPath = (!cameraInfoPath.empty() ? "file://" : "") + cameraInfoPath;
+        cameraInfoPath = !cameraInfoPath.empty() ? "file:///${ROS_HOME}/csi.yaml" : ("file://" + cameraInfoPath);
 
         sensor_msgs::msg::CameraInfo cameraInfo;
 

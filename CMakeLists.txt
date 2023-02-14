@@ -55,7 +55,8 @@ ament_target_dependencies(csi_driver_component
         cv_bridge
         OpenCV
         std_msgs
-        sensor_msgs)
+        sensor_msgs
+        camera_info_manager)
 rclcpp_components_register_nodes(csi_driver_component
         "csi_driver::CSIDriverNode")
 

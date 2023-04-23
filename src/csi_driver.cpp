@@ -157,7 +157,8 @@ namespace csi_driver
                + "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod)
                + " ! video/x-raw, width=(int)" + std::to_string(width)
                + ", height=(int)" + std::to_string(height)
-               + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
+               + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR"
+               + " ! appsink drop=true, sync=false";
     }
 }
 

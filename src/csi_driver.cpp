@@ -44,7 +44,6 @@ namespace csi_driver
         capture.release();
     }
 
-
     void CSIDriverNode::populateCameraInfo()
     {
         std::string cameraInfoPath = get_parameter("info_file").get_parameter_value().get<std::string>();

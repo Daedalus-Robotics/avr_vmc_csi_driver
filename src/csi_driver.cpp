@@ -117,6 +117,7 @@ namespace csi_driver
             );
 
             capture.open(pipeline, cv::CAP_GSTREAMER);
+            capture.set(cv::CAP_PROP_BUFFERSIZE, 1);
         }
     }
 

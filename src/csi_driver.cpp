@@ -49,7 +49,8 @@ namespace csi_driver
     void CSIDriverNode::populateCameraInfo()
     {
         std::string cameraInfoPath = get_parameter("info_file").get_parameter_value().get<std::string>();
-        cameraInfoPath = !cameraInfoPath.empty() ? "file:///${ROS_HOME}/csi.yaml" : ("file://" + cameraInfoPath);
+        bool noCameraInfo = cameraInfoPath.empty();
+        cameraInfoPath = noCameraInfo ? "file://${ROS_HOME}/csi.yaml" : ("file://" + cameraInfoPath);
 
         sensor_msgs::msg::CameraInfo cameraInfo;
 
@@ -61,8 +62,10 @@ namespace csi_driver
 
         cameraInfo = cameraInfoManager->getCameraInfo();
 
-        if (cameraInfoPath.empty())
+        if (noCameraInfo)
         {
+            RCLCPP_WARN(get_logger(), "No camera info file provided! Falling back to width and hight parameters.");
+            RCLCPP_WARN(get_logger(), "This is not recommended and may result in incorrect camera info.");
             cameraInfo.width = (int) get_parameter("width").get_parameter_value().get<int>();
             cameraInfo.height = (int) get_parameter("height").get_parameter_value().get<int>();
         }

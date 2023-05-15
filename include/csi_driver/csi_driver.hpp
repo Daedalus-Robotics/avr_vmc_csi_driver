@@ -19,11 +19,8 @@ namespace csi_driver
     private:
         bool isRunning = true;
 
-//        int captureWidth;
-//        int captureHeight;
         int captureFramerate;
         int captureFlipMethod;
-//        std::string opticalFrame;
 
         std::chrono::duration<int64_t, std::milli> captureLoopPeriod;
 

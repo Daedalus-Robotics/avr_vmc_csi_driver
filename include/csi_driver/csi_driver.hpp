@@ -22,7 +22,8 @@ namespace csi_driver
         int captureFramerate;
         int captureFlipMethod;
 
-        std::chrono::duration<int64_t, std::milli> captureLoopPeriod;
+        std::chrono::duration<int64_t, std::milli> captureLoopPeriod{};
+        std::chrono::steady_clock::time_point lastLoopTime;
 
         std::string pipeline;
         cv::VideoCapture capture;

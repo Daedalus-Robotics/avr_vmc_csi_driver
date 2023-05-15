@@ -38,6 +38,8 @@ namespace csi_driver
         auto timerRate = std::chrono::milliseconds((1000 / (captureFramerate + 10)));
         RCLCPP_DEBUG(this->get_logger(), "Timer period: %ld", timerRate.count());
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
+
+        lastLoopTime = std::chrono::steady_clock::now();
     }
 
     void CSIDriverNode::release()
@@ -99,6 +101,15 @@ namespace csi_driver
 
     void CSIDriverNode::grabFrame()
     {
+        std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
+
+        long frameCount = (currentTime - lastLoopTime) / std::chrono::milliseconds(captureLoopPeriod) - 1;
+        if (frameCount > 0)
+        {
+            RCLCPP_WARN(this->get_logger(), "Grabbed frame too late! Dropping %ld frames...", frameCount);
+        }
+        lastLoopTime = currentTime;
+
         if (isRunning && capture.isOpened())
         {
             if (capture.grab())

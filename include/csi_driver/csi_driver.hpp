@@ -22,6 +22,7 @@ namespace csi_driver
         int captureFramerate;
         int captureFlipMethod;
 
+        rclcpp::TimerBase::SharedPtr timer;
         std::chrono::duration<int64_t, std::milli> captureLoopPeriod{};
         std::chrono::steady_clock::time_point lastLoopTime;
 
@@ -32,12 +33,10 @@ namespace csi_driver
         std_msgs::msg::Header header;
         std::shared_ptr<camera_info_manager::CameraInfoManager> cameraInfoManager;
 
+        cv::Mat imageRaw;
         sensor_msgs::msg::Image::SharedPtr imageRawMsg;
         image_transport::CameraPublisher imageRawPublisher;
 
-        rclcpp::TimerBase::SharedPtr timer;
-
-        cv::Mat imageRaw;
 
         void populateCameraInfo();
 

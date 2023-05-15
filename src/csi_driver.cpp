@@ -30,11 +30,13 @@ namespace csi_driver
         imageRawPublisher = image_transport::create_camera_publisher(this, "image_raw",
                                                                      videoQos.get_rmw_qos_profile());
 
-        // Ensure that the timer is running slightly faster than the capture
         assert(captureFramerate > 0);
-        int durationMs = (1000 / (captureFramerate + 1));
-        auto timerRate = std::chrono::milliseconds(durationMs);
-        RCLCPP_DEBUG(this->get_logger(), "Timer period: %d", durationMs);
+        // The normal framerate interval (used to calculate the frame drop)
+        captureLoopPeriod = std::chrono::milliseconds(1000 / (captureFramerate));
+        // Ensure that the timer is running slightly faster than the capture framerate
+        // This ensures that we don't drop any frames
+        auto timerRate = std::chrono::milliseconds((1000 / (captureFramerate + 10)));
+        RCLCPP_DEBUG(this->get_logger(), "Timer period: %ld", timerRate.count());
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
     }
 

@@ -77,13 +77,13 @@ namespace csi_driver
         declare_parameter("info_file", "", generateParamDescriptor(
                 "Width in pixels of the camera")); // Should be specified by the launch file
 
-        declare_parameter("width", 0, generateParamDescriptor(
+        declare_parameter("width", 1920, generateParamDescriptor(
                 "Width in pixels of the camera. "
                 "Not used if there is a camera info file provided"));
-        declare_parameter("height", 0, generateParamDescriptor(
+        declare_parameter("height", 1080, generateParamDescriptor(
                 "Height in pixels of the camera. "
                 "Not used if there is a camera info file provided"));
-        declare_parameter("framerate", 0, generateParamDescriptor(
+        declare_parameter("framerate", 30, generateParamDescriptor(
                 "Framerate of the camera")); // Should be specified by the launch file
         declare_parameter("flip_method", 0, generateParamDescriptor(
                 "Flip method: "

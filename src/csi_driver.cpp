@@ -32,7 +32,7 @@ namespace csi_driver
         captureLoopPeriod = std::chrono::milliseconds(1000 / (captureFramerate));
         // Ensure that the timer is running slightly faster than the capture framerate
         // This ensures that we don't drop any frames
-        auto timerRate = std::chrono::milliseconds((1000 / (captureFramerate + 10)));
+        auto timerRate = std::chrono::milliseconds(1000 / (captureFramerate + 10));
         RCLCPP_DEBUG(this->get_logger(), "Timer period: %ld", timerRate.count());
         timer = this->create_wall_timer(timerRate, [this] { grabFrame(); });
 

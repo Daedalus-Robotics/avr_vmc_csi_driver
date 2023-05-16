@@ -1,9 +1,6 @@
 #include "csi_driver/csi_driver.hpp"
 
 #include <rclcpp_components/register_node_macro.hpp>
-#include <image_transport/image_transport.hpp>
-#include <cv_bridge/cv_bridge.h>
-#include <camera_info_manager/camera_info_manager.hpp>
 
 
 namespace csi_driver

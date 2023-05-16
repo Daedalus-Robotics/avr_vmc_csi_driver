@@ -164,14 +164,16 @@ namespace csi_driver
 
     std::string CSIDriverNode::gstreamerPipeline(unsigned int width, unsigned int height, int framerate, int flipMethod)
     {
-        return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(width)
-               + ", height=(int)" + std::to_string(height)
-               + ", framerate=(fraction)" + std::to_string(framerate)
-               + "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod)
-               + " ! video/x-raw, width=(int)" + std::to_string(width)
-               + ", height=(int)" + std::to_string(height)
-               + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR"
-               + " ! appsink drop=true, sync=false";
+        std::string source = "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(width)
+                             + ", height=(int)" + std::to_string(height)
+                             + ", framerate=(fraction)" + std::to_string(framerate)
+                             + "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod)
+                             + " ! video/x-raw, width=(int)" + std::to_string(width)
+                             + ", height=(int)" + std::to_string(height)
+                             + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR";
+
+        std::string sink = " ! appsink drop=true, sync=false";
+        return source + sink;
     }
 }
 

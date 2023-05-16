@@ -100,7 +100,7 @@ namespace csi_driver
     {
         std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
 
-        long frameCount = (currentTime - lastLoopTime) / std::chrono::milliseconds(captureLoopPeriod) - 1;
+        long frameCount = (currentTime - lastLoopTime) / captureLoopPeriod - 1;
         if (frameCount > 0)
         {
             RCLCPP_WARN(this->get_logger(), "Grabbed frame too late! Dropping %ld frames...", frameCount);

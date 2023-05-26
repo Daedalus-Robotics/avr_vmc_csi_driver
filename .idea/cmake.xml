@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CMakeSharedSettings">
     <configurations>
+      <configuration PROFILE_NAME="Test" ENABLED="true" CONFIG_NAME="Debug" GENERATION_OPTIONS="-DSHOW_FRAME:BOOL=ON" />
       <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" BUILD_OPTIONS="-j 32" />
     </configurations>
   </component>

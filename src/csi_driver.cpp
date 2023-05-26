@@ -147,6 +147,11 @@ namespace csi_driver
                 imageRawMsg,
                 std::make_shared<sensor_msgs::msg::CameraInfo>(cameraInfo)
         );
+
+#ifdef SHOW_FRAME
+        cv::imshow("CSI Camera", imageRaw);
+        cv::waitKey(1);
+#endif
     }
 
 

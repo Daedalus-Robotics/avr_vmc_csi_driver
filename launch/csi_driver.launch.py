@@ -21,7 +21,7 @@ def generate_launch_description() -> LaunchDescription:
     launch_entities.append(DeclareLaunchArgument('namespace', default_value='csi_camera'))
     launch_entities.append(DeclareLaunchArgument('info_file', default_value='',
                                                  description='Path to the camera info file'))
-    launch_entities.append(DeclareLaunchArgument('framerate', default_value='0'))
+    launch_entities.append(DeclareLaunchArgument('framerate', default_value='30'))
     launch_entities.append(DeclareLaunchArgument('flip_method', default_value='0',
                                                  description="Flip Method: " + FLIP_METHOD_DOCS_URL))
     launch_entities.append(DeclareLaunchArgument('optical_frame', default_value='csi_camera_optical_frame',

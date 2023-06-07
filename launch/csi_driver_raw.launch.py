@@ -4,8 +4,6 @@ from launch import LaunchDescription, LaunchDescriptionEntity
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 
-FLIP_METHOD_DOCS_URL = "https://gstreamer.freedesktop.org/documentation/videofilter/videoflip.html#GstVideoFlipMethod"
-
 
 def generate_launch_description() -> LaunchDescription:
     launch_entities: list[LaunchDescriptionEntity] = []
@@ -25,7 +23,7 @@ def generate_launch_description() -> LaunchDescription:
     launch_entities.append(DeclareLaunchArgument('height', default_value='1080'))
     launch_entities.append(DeclareLaunchArgument('framerate', default_value='30'))
     launch_entities.append(DeclareLaunchArgument('flip_method', default_value='0',
-                                                 description="Flip Method: " + FLIP_METHOD_DOCS_URL))
+                                                 description="How to flip/rotate the image"))
     launch_entities.append(DeclareLaunchArgument('optical_frame', default_value='csi_camera_optical_frame',
                                                  description='The tf2 optical frame id'))
 

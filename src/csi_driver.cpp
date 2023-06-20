@@ -42,6 +42,7 @@ namespace csi_driver
     void CSIDriverNode::release()
     {
         isRunning = false;
+        timer->cancel();
         capture.release();
     }
 
@@ -107,29 +108,32 @@ namespace csi_driver
         }
         lastLoopTime = currentTime;
 
-        if (isRunning && capture.isOpened())
+        if (isRunning)
         {
-            if (capture.grab())
+            if (capture.isOpened())
             {
-                capture.retrieve(imageRaw);
-                publishFrame();
+                if (capture.grab())
+                {
+                    capture.retrieve(imageRaw);
+                    publishFrame();
+                }
+                else
+                {
+                    RCLCPP_DEBUG(this->get_logger(), "No frame available");
+                }
             }
             else
             {
-                RCLCPP_DEBUG(this->get_logger(), "No frame available");
-            }
-        }
-        else
-        {
-            RCLCPP_WARN_SKIPFIRST(this->get_logger(), "Could not open camera! Retrying...");
-            RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...",
-                        cameraInfoManager->getCameraInfo().width,
-                        cameraInfoManager->getCameraInfo().height,
-                        captureFramerate
-            );
+                RCLCPP_WARN_SKIPFIRST(this->get_logger(), "Could not open camera! Retrying...");
+                RCLCPP_INFO(this->get_logger(), "Opening camera (%dx%d, %dfps)...",
+                            cameraInfoManager->getCameraInfo().width,
+                            cameraInfoManager->getCameraInfo().height,
+                            captureFramerate
+                );
 
-            capture.open(pipeline, cv::CAP_GSTREAMER);
-            capture.set(cv::CAP_PROP_BUFFERSIZE, 1);
+                capture.open(pipeline, cv::CAP_GSTREAMER);
+                capture.set(cv::CAP_PROP_BUFFERSIZE, 1);
+            }
         }
     }
 

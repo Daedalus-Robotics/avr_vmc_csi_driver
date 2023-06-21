@@ -13,8 +13,8 @@ namespace csi_driver
         initParameters();
         populateCameraInfo();
 
-        captureFramerate = (int) get_parameter("framerate").get_parameter_value().get<int>();
-        captureFlipMethod = (int) get_parameter("flip_method").get_parameter_value().get<int>();
+        captureFramerate = (int) get_parameter("framerate").as_int();
+        captureFlipMethod = (int) get_parameter("flip_method").as_int();
 
         pipeline = gstreamerPipeline(
                 cameraInfoManager->getCameraInfo().width,
@@ -48,7 +48,7 @@ namespace csi_driver
 
     void CSIDriverNode::populateCameraInfo()
     {
-        std::string cameraInfoPath = get_parameter("info_file").get_parameter_value().get<std::string>();
+        std::string cameraInfoPath = get_parameter("info_file").as_string();
         bool noCameraInfo = cameraInfoPath.empty();
         cameraInfoPath = noCameraInfo ? "file://${ROS_HOME}/csi.yaml" : ("file://" + cameraInfoPath);
 
@@ -66,10 +66,10 @@ namespace csi_driver
         {
             RCLCPP_WARN(get_logger(), "No camera info file provided! Falling back to width and hight parameters.");
             RCLCPP_WARN(get_logger(), "This is not recommended and may result in incorrect camera info.");
-            cameraInfo.width = (int) get_parameter("width").get_parameter_value().get<int>();
-            cameraInfo.height = (int) get_parameter("height").get_parameter_value().get<int>();
+            cameraInfo.width = get_parameter("width").as_int();
+            cameraInfo.height = get_parameter("height").as_int();
         }
-        header.frame_id = get_parameter("optical_frame").get_parameter_value().get<std::string>();
+        header.frame_id = get_parameter("optical_frame").as_string();
         cameraInfo.header = header;
 
         cameraInfoManager->setCameraInfo(cameraInfo);

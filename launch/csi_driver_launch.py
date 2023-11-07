@@ -68,7 +68,7 @@ def generate_launch_description() -> LaunchDescription:
     )
     composable_nodes.append(
             ComposableNode(
-                    package='csi_driver',
+                    package='avr_vmc_2023_csi_driver',
                     plugin='csi_driver::CSIDriverNode',
                     name="csi_driver",
                     namespace=namespace,

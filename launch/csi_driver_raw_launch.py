@@ -29,7 +29,7 @@ def generate_launch_description() -> LaunchDescription:
 
     launch_entities.append(
             Node(
-                    package='csi_driver',
+                    package='avr_vmc_2023_csi_driver',
                     executable='csi_driver_node',
                     name="csi_driver",
                     namespace=namespace,

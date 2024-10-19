@@ -6,7 +6,7 @@
 namespace csi_driver
 {
     CSIDriverNode::CSIDriverNode(const rclcpp::NodeOptions &options) :
-            Node("avr_vmc_2023_csi_driver", options),
+            Node("avr_vmc_csi_driver", options),
             capture(),
             videoQos(1)
     {

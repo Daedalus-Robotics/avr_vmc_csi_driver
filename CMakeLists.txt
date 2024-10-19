@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(avr_vmc_2023_csi_driver)
+project(avr_vmc_2023_driver)
 
 # Default to C99
 if (NOT CMAKE_C_STANDARD)
